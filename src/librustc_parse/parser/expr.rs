@@ -911,20 +911,6 @@ impl<'a> Parser<'a> {
             //       |             ^ expected expression
             self.bump();
             Ok(self.mk_expr_err(self.token.span))
-        } else if self.normalized_token.span.rust_2018() {
-            // `Span::rust_2018()` is somewhat expensive; don't get it repeatedly.
-            if self.check_keyword(kw::Async) {
-                if self.is_async_block() {
-                    // Check for `async {` and `async move {`.
-                    self.parse_async_block(attrs)
-                } else {
-                    self.parse_closure_expr(attrs)
-                }
-            } else if self.eat_keyword(kw::Await) {
-                self.recover_incorrect_await_syntax(lo, self.prev_token.span, attrs)
-            } else {
-                self.parse_lit_expr(attrs)
-            }
         } else {
             self.parse_lit_expr(attrs)
         }

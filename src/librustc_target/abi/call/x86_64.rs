@@ -21,13 +21,11 @@ struct Memory;
 const LARGEST_VECTOR_SIZE: usize = 512;
 const MAX_EIGHTBYTES: usize = LARGEST_VECTOR_SIZE / 64;
 
-fn classify_arg<'a, Ty, C>(
-    cx: &C,
-    arg: &ArgAbi<'a, Ty>,
-) -> Result<[Option<Class>; MAX_EIGHTBYTES], Memory>
-where
-    Ty: TyLayoutMethods<'a, C> + Copy,
-    C: LayoutOf<Ty = Ty, TyLayout = TyLayout<'a, Ty>> + HasDataLayout,
+fn classify_arg<'a, Ty, C>(cx: &C, arg: &ArgAbi<'a, Ty>) 
+    -> Result<[Option<Class>; MAX_EIGHTBYTES], Memory>
+    where
+        Ty: TyLayoutMethods<'a, C> + Copy,
+        C: LayoutOf<Ty = Ty, TyLayout = TyLayout<'a, Ty>> + HasDataLayout,
 {
     fn classify<'a, Ty, C>(
         cx: &C,

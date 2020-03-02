@@ -82,8 +82,6 @@ symbols! {
         Yield:              "yield",
 
         // Edition-specific keywords that are used in stable Rust.
-        Async:              "async", // >= 2018 Edition only
-        Await:              "await", // >= 2018 Edition only
         Dyn:                "dyn", // >= 2018 Edition only
 
         // Edition-specific keywords that are used in unstable Rust or reserved for future use.
@@ -153,15 +151,12 @@ symbols! {
         associated_type_defaults,
         associated_types,
         assume_init,
-        async_await,
-        async_closure,
         attr,
         attributes,
         attr_literals,
         augmented_assignments,
         automatically_derived,
         avx512_target_feature,
-        await_macro,
         begin_panic,
         bench,
         bin,

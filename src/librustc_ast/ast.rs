@@ -1208,17 +1208,6 @@ pub enum ExprKind {
     Closure(CaptureBy, Async, Movability, P<FnDecl>, P<Expr>, Span),
     /// A block (`'label: { ... }`).
     Block(P<Block>, Option<Label>),
-    /// An async block (`async move { ... }`).
-    ///
-    /// The `NodeId` is the `NodeId` for the closure that results from
-    /// desugaring an async block, just like the NodeId field in the
-    /// `Async::Yes` variant. This is necessary in order to create a def for the
-    /// closure which can be used as a parent of any child defs. Defs
-    /// created during lowering cannot be made the parent of any other
-    /// preexisting defs.
-    Async(CaptureBy, NodeId, P<Block>),
-    /// An await expression (`my_future.await`).
-    Await(P<Expr>),
 
     /// A try block (`try { ... }`).
     TryBlock(P<Block>),
@@ -1308,7 +1297,7 @@ pub struct QSelf {
     pub position: usize,
 }
 
-/// A capture clause used in closures and `async` blocks.
+/// A capture clause used in closures blocks.
 #[derive(Clone, Copy, PartialEq, RustcEncodable, RustcDecodable, Debug, HashStable_Generic)]
 pub enum CaptureBy {
     /// `move |x| y + x`.
@@ -2039,7 +2028,7 @@ impl Param {
 /// E.g., `fn foo(bar: baz)`.
 ///
 /// Please note that it's different from `FnHeader` structure
-/// which contains metadata about function safety, asyncness, constness and ABI.
+/// which contains metadata about function safety, constness and ABI.
 #[derive(Clone, RustcEncodable, RustcDecodable, Debug)]
 pub struct FnDecl {
     pub inputs: Vec<Param>,
@@ -2075,25 +2064,6 @@ pub enum Unsafe {
     No,
 }
 
-#[derive(Copy, Clone, RustcEncodable, RustcDecodable, Debug)]
-pub enum Async {
-    Yes { span: Span, closure_id: NodeId, return_impl_trait_id: NodeId },
-    No,
-}
-
-impl Async {
-    pub fn is_async(self) -> bool {
-        if let Async::Yes { .. } = self { true } else { false }
-    }
-
-    /// In ths case this is an `async` return, the `NodeId` for the generated `impl Trait` item.
-    pub fn opt_return_id(self) -> Option<NodeId> {
-        match self {
-            Async::Yes { return_impl_trait_id, .. } => Some(return_impl_trait_id),
-            Async::No => None,
-        }
-    }
-}
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, RustcEncodable, RustcDecodable, Debug)]
 #[derive(HashStable_Generic)]
@@ -2465,11 +2435,10 @@ impl Extern {
 /// A function header.
 ///
 /// All the information between the visibility and the name of the function is
-/// included in this struct (e.g., `async unsafe fn` or `const extern "C" fn`).
+/// included in this struct (e.g. `const extern "C" fn`).
 #[derive(Clone, Copy, RustcEncodable, RustcDecodable, Debug)]
 pub struct FnHeader {
     pub unsafety: Unsafe,
-    pub asyncness: Async,
     pub constness: Const,
     pub ext: Extern,
 }
@@ -2477,9 +2446,8 @@ pub struct FnHeader {
 impl FnHeader {
     /// Does this function header have any qualifiers or is it empty?
     pub fn has_qualifiers(&self) -> bool {
-        let Self { unsafety, asyncness, constness, ext } = self;
+        let Self { unsafety, constness, ext } = self;
         matches!(unsafety, Unsafe::Yes(_))
-            || asyncness.is_async()
             || matches!(constness, Const::Yes(_))
             || !matches!(ext, Extern::None)
     }
@@ -2489,7 +2457,6 @@ impl Default for FnHeader {
     fn default() -> FnHeader {
         FnHeader {
             unsafety: Unsafe::No,
-            asyncness: Async::No,
             constness: Const::No,
             ext: Extern::None,
         }

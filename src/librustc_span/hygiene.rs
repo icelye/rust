@@ -823,8 +823,6 @@ pub enum DesugaringKind {
     /// to an `type Foo = impl Trait;` and replacing the
     /// `impl Trait` with `Foo`.
     OpaqueTy,
-    Async,
-    Await,
     ForLoop,
 }
 
@@ -833,8 +831,6 @@ impl DesugaringKind {
     fn descr(self) -> &'static str {
         match self {
             DesugaringKind::CondTemporary => "`if` or `while` condition",
-            DesugaringKind::Async => "`async` block or function",
-            DesugaringKind::Await => "`await` expression",
             DesugaringKind::QuestionMark => "operator `?`",
             DesugaringKind::TryBlock => "`try` block",
             DesugaringKind::OpaqueTy => "`impl Trait`",
